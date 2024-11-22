@@ -3,21 +3,27 @@
     <h1 class="text-4xl font-bold mb-4">{{ t('title') }}</h1>
     <div class="mb-4 flex justify-between items-center">
       <div>
-        <button @click="initGame" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mr-2">
-          {{ gameRunning ? t('restart') : t('startGame') }}
+        <button v-if="!gameRunning" @click="initGame" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mr-2">
+          {{ t('startGame') }}
         </button>
-        <button @click="toggleLanguage" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+        <button v-else @click="endGame" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mr-2">
+          {{ t('endGame') }}
+        </button>
+        <button @click="toggleLanguage" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mr-2">
           {{ t('changeLanguage') }}
         </button>
+        <select v-model="selectedLevel" :disabled="gameRunning" class="bg-gray-700 text-white py-2 px-4 rounded">
+          <option v-for="l in 10" :key="l" :value="l">{{ t('level') }} {{ l }}</option>
+        </select>
       </div>
       <div>
         <span class="text-xl mr-4">{{ t('score') }}: {{ score }}</span>
         <span class="text-xl">{{ t('level') }}: {{ level }}</span>
       </div>
     </div>
-    <div ref="gameBoard" class="w-64 h-64 bg-gray-800 relative">
-      <div v-for="(segment, index) in snake" :key="index" class="absolute w-4 h-4 bg-green-500" :style="{ left: `${segment.x * 16}px`, top: `${segment.y * 16}px` }"></div>
-      <div class="absolute w-4 h-4 bg-red-500" :style="{ left: `${food.x * 16}px`, top: `${food.y * 16}px` }"></div>
+    <div ref="gameBoard" class="w-96 h-96 bg-gray-800 relative">
+      <div v-for="(segment, index) in snake" :key="index" class="absolute w-6 h-6 bg-green-500" :style="{ left: `${segment.x * 24}px`, top: `${segment.y * 24}px` }"></div>
+      <div class="absolute w-6 h-6 bg-red-500" :style="{ left: `${food.x * 24}px`, top: `${food.y * 24}px` }"></div>
     </div>
     <div v-if="gameOver" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div class="bg-white p-8 rounded-lg text-black">
@@ -41,17 +47,18 @@ import useFood from './hooks/useFood'
 import useI18n from './hooks/useI18n'
 
 const gameBoard = ref(null)
-const { score, level, gameOver, gameRunning, startGame, endGame, increaseScore, getGameSpeed } = useGameState()
+const { score, level, gameOver, gameRunning, startGame, endGame, increaseScore, getGameSpeed, getDifficulty } = useGameState()
 const { snake, direction, resetSnake, moveSnake, growSnake, shrinkSnake, changeDirection } = useSnake()
 const { food, resetFood } = useFood()
 const { t, toggleLanguage } = useI18n()
 
+const selectedLevel = ref(1)
 let gameLoop = null
 
 const initGame = () => {
   resetSnake()
   resetFood()
-  startGame()
+  startGame(selectedLevel.value)
   if (gameLoop) clearInterval(gameLoop)
   gameLoop = setInterval(updateGame, getGameSpeed.value)
 }
@@ -75,6 +82,10 @@ const updateGame = () => {
     resetFood()
     increaseScore()
     animate(gameBoard.value, { scale: [1, 1.05, 1] }, { duration: 0.2 })
+    
+    // Update game speed
+    clearInterval(gameLoop)
+    gameLoop = setInterval(updateGame, getGameSpeed.value)
   } else {
     shrinkSnake()
   }
@@ -98,11 +109,12 @@ const handleKeydown = (e) => {
   }
 }
 
-watch(getGameSpeed, (newSpeed) => {
+watch([getGameSpeed, getDifficulty], ([newSpeed, newDifficulty]) => {
   if (gameLoop) {
     clearInterval(gameLoop)
     gameLoop = setInterval(updateGame, newSpeed)
   }
+  // You can use newDifficulty to adjust other game parameters if needed
 })
 
 onMounted(() => {

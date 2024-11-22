@@ -6,9 +6,9 @@ export default function useGameState() {
   const gameOver = ref(false)
   const gameRunning = ref(false)
 
-  const startGame = () => {
+  const startGame = (selectedLevel) => {
     score.value = 0
-    level.value = 1
+    level.value = selectedLevel
     gameOver.value = false
     gameRunning.value = true
   }
@@ -20,13 +20,17 @@ export default function useGameState() {
 
   const increaseScore = () => {
     score.value++
-    if (score.value % 5 === 0) {
+    if (score.value % 10 === 0) {
       level.value++
     }
   }
 
   const getGameSpeed = computed(() => {
-    return Math.max(50, 200 - (level.value - 1) * 20)
+    return Math.max(50, 200 - (level.value - 1) * 25)
+  })
+
+  const getDifficulty = computed(() => {
+    return Math.min(0.9, 0.5 + (level.value - 1) * 0.05)
   })
 
   return {
@@ -37,6 +41,7 @@ export default function useGameState() {
     startGame,
     endGame,
     increaseScore,
-    getGameSpeed
+    getGameSpeed,
+    getDifficulty
   }
 }

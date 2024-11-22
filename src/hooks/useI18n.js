@@ -4,6 +4,7 @@ const translations = {
   en: {
     title: 'Snake Game',
     startGame: 'Start Game',
+    endGame: 'End Game',
     restart: 'Restart',
     changeLanguage: 'Change Language',
     score: 'Score',
@@ -16,6 +17,7 @@ const translations = {
   zh: {
     title: '贪吃蛇游戏',
     startGame: '开始游戏',
+    endGame: '结束游戏',
     restart: '重新开始',
     changeLanguage: '切换语言',
     score: '得分',
