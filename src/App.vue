@@ -57,15 +57,20 @@ const initGame = () => {
 }
 
 const updateGame = () => {
-  moveSnake()
+  const newHead = {
+    x: snake.value[0].x + direction.x,
+    y: snake.value[0].y + direction.y
+  }
 
-  const head = snake.value[0]
-  if (checkCollision(head)) {
+  if (checkCollision(newHead)) {
     endGame()
+    clearInterval(gameLoop)
     return
   }
 
-  if (head.x === food.value.x && head.y === food.value.y) {
+  moveSnake()
+
+  if (newHead.x === food.value.x && newHead.y === food.value.y) {
     growSnake()
     resetFood()
     increaseScore()
@@ -79,7 +84,7 @@ const checkCollision = (head) => {
   if (head.x < 0 || head.x >= 16 || head.y < 0 || head.y >= 16) {
     return true
   }
-  return snake.value.slice(1).some(segment => segment.x === head.x && segment.y === head.y)
+  return snake.value.some(segment => segment.x === head.x && segment.y === head.y)
 }
 
 const handleKeydown = (e) => {
